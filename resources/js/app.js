@@ -1,5 +1,10 @@
-import './bootstrap'; // optional
+import './bootstrap';
 import { createApp } from 'vue';
 import App from './app.vue';
+import router from './router'; // import the router
 
-createApp(App).mount('#app'); // div id must match!
+const app = createApp(App);
+app.use(router); // tell Vue to use Vue Router
+app.mount('#app'); // make sure this matches your Blade div id
+
+

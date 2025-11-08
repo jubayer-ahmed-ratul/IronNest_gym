@@ -15,7 +15,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id', // jodi Role model use korcho
+        'role',
     ];
 
     protected $hidden = [
@@ -27,22 +27,14 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // =========================
-    // Add these methods inside the User class
-    // =========================
-
-    public function roleRelation()
-    {
-        return $this->belongsTo(Role::class, 'role_id');
-    }
-
+    // ✅ Simple role helpers
     public function isAdmin(): bool
     {
-        return $this->roleRelation?->name === 'admin' || $this->roleRelation?->name === 'superadmin';
+        return $this->role === 'admin' || $this->role === 'superadmin';
     }
 
     public function isSuperAdmin(): bool
     {
-        return $this->roleRelation?->name === 'superadmin';
+        return $this->role === 'superadmin';
     }
 }

@@ -1,18 +1,26 @@
 <template>
-  <div>
-    <h1>Welcome to IronNest!</h1>
-    <p>This is your Vue frontend.</p>
+  <div class="" id="app">
+    <PageHeader />
+    <main class=" min-h-screen ">
+      <router-view />
+    </main>
+    <PageFooter />
   </div>
 </template>
 
 <script>
+import PageHeader from './components/PageHeader.vue';
+import PageFooter from './components/PageFooter.vue';
+
 export default {
-  name: 'App'
-}
+  name: 'App',
+  components: {
+    PageHeader,
+    PageFooter,
+  },
+};
 </script>
 
-<style scoped>
-h1 {
-  color: #0e404f;
-}
+<style>
+
 </style>

@@ -10,62 +10,67 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 class RoleResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?string $navigationLabel = 'Roles';
+    protected static ?string $navigationGroup = 'User Management';
 
-    // Only admin or superadmin can access this resource
-    public static function canViewAny(): bool
+    // ✅ Navigation-এ দেখানোর অনুমতি
+    public static function shouldRegisterNavigation(): bool
     {
-        return auth()->user()->role === 'admin' || auth()->user()->role === 'superadmin';
+        $user = auth()->user();
+        return $user && in_array($user->role, ['admin', 'superadmin']);
     }
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('email')
-                    ->required()
-                    ->email()
-                    ->maxLength(255),
-                Forms\Components\Select::make('role')
-                    ->label('Role')
-                    ->options([
-                        'user' => 'User',
-                        'admin' => 'Admin',
-                        'superadmin' => 'Super Admin',
-                    ])
-                    ->required()
-                    ->default('user')
-                    // Only superadmins can assign superadmin role
-                    ->disabled(fn ($record) =>
-                        auth()->user()->role !== 'superadmin' && $record->role === 'superadmin'
-                    ),
-            ]);
+        return $form->schema([
+            Forms\Components\TextInput::make('name')
+                ->required()
+                ->maxLength(255),
+
+            Forms\Components\TextInput::make('email')
+                ->required()
+                ->email()
+                ->maxLength(255),
+
+            Forms\Components\Select::make('role')
+                ->label('Role')
+                ->options([
+                    'user' => 'User',
+                    'admin' => 'Admin',
+                    'superadmin' => 'Super Admin',
+                ])
+                ->required()
+                ->default('user')
+                ->disabled(fn ($record) =>
+                    auth()->user()?->role !== 'superadmin' &&
+                    ($record?->role === 'superadmin')
+                ),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('name')->label('User Name')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('email')->label('Email')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('role')->label('Role')->sortable(),
-                Tables\Columns\TextColumn::make('created_at')->label('Created At')->dateTime()->sortable(),
-            ])
-            ->filters([])
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn ($record) => auth()->user()->role === 'admin' || auth()->user()->role === 'superadmin'),
-            ])
-            ->bulkActions([]);
+        return $table->columns([
+            Tables\Columns\TextColumn::make('name')->label('User Name')->sortable()->searchable(),
+            Tables\Columns\TextColumn::make('email')->label('Email')->sortable()->searchable(),
+            Tables\Columns\TextColumn::make('role')->label('Role')->sortable(),
+            Tables\Columns\TextColumn::make('created_at')->label('Created At')->dateTime()->sortable(),
+        ])
+        ->filters([])
+        ->actions([
+            Tables\Actions\EditAction::make()
+                ->visible(fn ($record) =>
+                    auth()->user()?->role === 'admin' ||
+                    auth()->user()?->role === 'superadmin'
+                ),
+        ])
+        ->bulkActions([]);
     }
 
     public static function getRelations(): array
@@ -73,7 +78,6 @@ class RoleResource extends Resource
         return [];
     }
 
-    // Show all users to admin/superadmin
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->withoutGlobalScopes();
